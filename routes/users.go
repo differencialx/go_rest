@@ -55,7 +55,6 @@ func login(context *gin.Context) {
 
 	token, err := utils.GenerateToken(user.Email, user.ID)
 	if err != nil {
-		panic(err)
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Login error",
 		})
