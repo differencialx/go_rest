@@ -67,10 +67,20 @@ func updateEvent(context *gin.Context) {
 		})
 		return
 	}
-	_, err = models.GetEventById(eventId)
+
+	userId := context.GetInt64("userId")
+	event, err := models.GetEventById(eventId)
+
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Could not fetch event",
+		})
+		return
+	}
+
+	if userId != event.UserID {
+		context.JSON(http.StatusForbidden, gin.H{
+			"message": "Forbidden",
 		})
 		return
 	}
@@ -86,6 +96,7 @@ func updateEvent(context *gin.Context) {
 	}
 
 	updatedEvent.ID = eventId
+	updatedEvent.UserID = userId
 
 	err = updatedEvent.Update()
 	if err != nil {
@@ -109,11 +120,18 @@ func deleteEvent(context *gin.Context) {
 		})
 		return
 	}
-
+	userId := context.GetInt64("userId")
 	event, err := models.GetEventById(eventId)
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Could not fetch an event",
+		})
+		return
+	}
+
+	if userId != event.UserID {
+		context.JSON(http.StatusForbidden, gin.H{
+			"message": "Forbidden",
 		})
 		return
 	}
