@@ -1,8 +1,10 @@
 package models
 
 import (
+	"errors"
 	"go_rest/db"
 	"go_rest/utils"
+	"log"
 )
 
 type User struct {
@@ -33,4 +35,29 @@ func (u *User) Save() error {
 	userId, err := result.LastInsertId()
 	u.ID = userId
 	return err
+}
+
+func (u User) ValidateCredentials() error {
+	query := `
+	SELECT password FROM users
+	WHERE email = ?
+	`
+	row := db.DB.QueryRow(query, u.Email)
+
+	var retrievedPassword string
+
+	err := row.Scan(&retrievedPassword)
+
+	if err != nil {
+		return err
+	}
+
+	log.Println(u.Password, retrievedPassword)
+	passwordIsValid := utils.CheckPasswordHash(u.Password, retrievedPassword)
+
+	if !passwordIsValid {
+		return errors.New("Creadentials invalid")
+	}
+
+	return nil
 }
